@@ -81,8 +81,7 @@ $$G(s) = \frac{K_t}{s \left[ LJs^2 + (RJ + Lb)s + (Rb + K_t K_e) \right]}$$
 - Explain the relationship between duty cycle and average output voltage in PWM. If the supply is 12 V and the duty cycle is 60%, what is the average motor voltage?
 - Describe the H-Bridge switching logic. Which switch pairs must activate to reverse motor direction, and why does activating all four simultaneously cause a short circuit?
 - The L298N introduces approximately a 2 V drop. How does this affect the maximum achievable speed when using a 12 V supply? What are the implications for the control signal range?
-- 
-Why is a DC motor considered an integral plant (type 1 system) in control terms? What does this imply about open-loop position stability?
+- Why is a DC motor considered an integral plant (type 1 system) in control terms? What does this imply about open-loop position stability?
 
 ### Feedback loop
 - Draw and explain the block diagram of the closed-loop position control system used in this guide. Identify the plant, sensor, controller, and actuator.
@@ -91,12 +90,10 @@ Why is a DC motor considered an integral plant (type 1 system) in control terms?
 
 ### PID theory
 - State the PID control law m(t) = Kp·e(t) + Ki·∫e(t)dt + Kd·de/dt. What is the physical interpretation of each term and what aspect of system behavior does each correct?
-- 
-The guide approximates the integral as eintegral += e * deltaT. What numerical integration method is this? What are its error characteristics compared to trapezoidal integration?
+- The guide approximates the integral as eintegral += e * deltaT. What numerical integration method is this? What are its error characteristics compared to trapezoidal integration?
 - What is integrator windup? Under what conditions does it occur in this implementation, and what strategies could be added to prevent it?
 - The derivative term uses (e - eprev) / deltaT. Why is derivative action sensitive to noise? What is "derivative kick" and how can it be mitigated?
-- 
-In the code, Ki is set to 0. With only proportional and derivative action (PD control), can the system achieve zero steady-state error for a constant reference? Justify your answer analytically.
+- In the code, Ki is set to 0. With only proportional and derivative action (PD control), can the system achieve zero steady-state error for a constant reference? Justify your answer analytically.
 ### Tuning & performance
 - Describe the manual tuning procedure starting with Kp alone. What observable behavior tells you Kp is too low, adequate, or too high?
 - Define settling time, overshoot, and steady-state error. Given that the lab grades on minimizing all three simultaneously, explain the trade-offs involved in achieving this.
@@ -105,8 +102,7 @@ In the code, Ki is set to 0. With only proportional and derivative action (PD co
 ### Implementation
 - The sample time deltaT is computed as (currT - prevT) / 1e6. Why is variable sample time used instead of a fixed timer interrupt? What problems can arise from non-uniform sampling?
 - The PWM output is clamped to [0, 255] and direction is determined by the sign of u. What is the effect of this nonlinearity (saturation) on the integral term, and how does it interact with windup?
-- 
-If you wanted to accept a target position via serial input from the keyboard (the optional deliverable), what modifications to the code structure would be required? What parsing and safety considerations apply?
+- If you wanted to accept a target position via serial input from the keyboard (the optional deliverable), what modifications to the code structure would be required? What parsing and safety considerations apply?
 - The Serial.println() calls inside the main loop add latency. How does this affect the effective sampling rate and control loop timing? How would you measure and mitigate this?
 
 ## 6. Aproximación Práctica (Simplificación)
