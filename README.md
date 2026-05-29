@@ -65,8 +65,9 @@ Si desarrollamos el denominador, la ecuación queda de la siguiente forma de ter
 $$G(s) = \frac{K_t}{s \left[ LJs^2 + (RJ + Lb)s + (Rb + K_t K_e) \right]}$$
 
 ---
+## 5. Sección de preguntas
 
-## 5. Aproximación Práctica (Simplificación)
+## 6. Aproximación Práctica (Simplificación)
 
 En la gran mayoría de los motores de CD prácticos, la inductancia de la armadura ($L$) es extremadamente pequeña comparada con la resistencia ($R$) ($L \approx 0$). Si despreciamos $L$, la función de transferencia se simplifica a un sistema de **segundo orden**:
 
