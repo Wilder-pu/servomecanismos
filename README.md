@@ -1,122 +1,97 @@
-# Función de Transferencia de un Motor de CD (Posición vs Voltaje)
+# Laboratorio de Control Digital: Motores de CD (Posición y Velocidad)
 
-Para obtener la función de transferencia de un motor de corriente directa (CD) que relaciona la **posición angular de la armadura ($\theta$)** con el **voltaje de entrada ($V$)**, debemos analizar las ecuaciones eléctricas y mecánicas del sistema.
-
-Aquí tienes el desarrollo paso a paso utilizando el modelo lineal clásico de un motor controlado por armadura.
+Este repositorio contiene las guías de laboratorio, modelos matemáticos, algoritmos de filtrado de señales y la implementación en tiempo real de sistemas de **control en lazo cerrado (PID)** para motores de corriente directa (CD) utilizando la plataforma Arduino, controladores Puente H (L298N) y encoders incrementales.
 
 ---
 
-## 1. Variables y Parámetros del Sistema
+## 🎯 Objetivo General del Proyecto
 
-* $V(s)$: Voltaje de entrada en la armadura.
-* $\Theta(s)$: Posición angular del eje del motor.
-* $I(s)$: Corriente de la armadura.
-* $R$: Resistencia de la armadura.
-* $L$: Inductancia de la armadura.
-* $K_e$: Constante de fuerza electromotriz (f.e.m. inversa).
-* $K_t$: Constante de torque del motor.
-* $J$: Momento de inercia del rotor y la carga.
-* $b$: Coeficiente de fricción viscosa del motor.
+Diseñar, analizar e implementar controladores digitales de **posición angular ($\Theta$)** y **velocidad angular ($\Omega$)** sobre un motor de CD con caja reductora y encoder magnético, comprendiendo la dinámica física del sistema, el impacto del ruido de medición, las técnicas de filtrado digital y la sintonización práctica del algoritmo PID.
 
 ---
 
-## 2. Ecuaciones Fundamentales (Dominio del Tiempo)
+## 📚 Estructura de las Guías
 
-1. **Circuito Eléctrico:** El voltaje de entrada se consume en la resistencia, la inductancia y la f.e.m. inversa ($e_b = K_e \frac{d\theta}{dt}$):
-   $$v(t) = R i(t) + L \frac{di(t)}{dt} + K_e \frac{d\theta(t)}{dt}$$
+```mermaid
+flowchart TD
+    subgraph HW["SISTEMA ELECTROMECÁNICO"]
+        direction LR
+        ARD["[Arduino]"] --> DRV["[Driver L298N]"] --> MOT["[Motor DC GA25-370]"]
+        MOT -.->|Feedback| ENC["[Encoder]"] -.-> ARD
+    end
 
-2. **Balance Mecánico:** El torque generado por el motor ($T_m = K_t i$) acelera la inercia y vence la fricción:
-   $$T_m(t) = K_t i(t) = J \frac{d^2\theta(t)}{dt^2} + b \frac{d\theta(t)}{dt}$$
+    HW --> G1
+    HW --> G2
+
+    subgraph G1["<b>GUÍA 1</b><br>Control de Posición Angular"]
+        direction TB
+        G1_D["• Variable: Posición θ(t)<br>• Sistema: Tipo 1 (Integrador)<br>• Modelo: 2.º Orden (L ≈ 0)<br>• Entrada: Perfil Sinusoidal<br>• Control: PD / PID"]
+    end
+
+    subgraph G2["<b>GUÍA 2</b><br>Control de Velocidad Angular"]
+        direction TB
+        G2_D["• Variable: Velocidad Ω(t)<br>• Sistema: Tipo 0 (Sin integrador)<br>• Modelo: 1.er Orden (L ≈ 0)<br>• Proceso: Filtrado PB (25 Hz)<br>• Control: PI / PID"]
+    end
+---
+
+### 📌 Guía 1: Control de Posición Angular ($\Theta$)
+Se aborda el seguimiento de trayectoria de posición del eje de salida del motor.
+
+* **Fundamento:** La posición es la integral de la velocidad. Al tener un integrador puro en la planta, el sistema es de **Tipo 1** y de **2.º Orden**.
+* **Puntos Clave:**
+  * Lectura de cuadratura del encoder mediante interrupciones de hardware (`RISING`/`CHANGE`).
+  * Prevención de condiciones de carrera mediante bloques atómicos (`ATOMIC_BLOCK`).
+  * Seguimiento de trayectorias sinusoidales y escalón.
+  * Sintonización de control PD/PID para minimizar sobrepico y tiempo de asentamiento.
 
 ---
 
-## 3. Transformada de Laplace (Condiciones iniciales cero)
+### 📌 Guía 2: Control de Velocidad Angular ($\Omega$)
+Se analiza el comportamiento dinámico de la velocidad y la necesidad de acondicionar la señal leída por el encoder antes de aplicarla al lazo de control.
 
-Aplicando la transformada de Laplace a ambas ecuaciones, pasamos al dominio de la frecuencia compleja ($s$):
+* **Fundamento:** El sistema de velocidad no posee integrador natural, clasificándose como un sistema de **Tipo 0** y de **1.er Orden**.
+* **Puntos Clave:**
+  * **Métodos de Medición:** Comparación entre el Método 1 (conteo por intervalo fijo) y el Método 2 (tiempo entre pulsos por interrupción).
+  * **Filtrado Digital:** Diseño e implementación de un filtro paso bajo Butterworth de 1.er orden a 25 Hz para eliminar el ruido de cuantización de alta frecuencia.
+  * **Control Lazo Cerrado:** Necesidad crítica de la acción Integral ($K_i$) para eliminar el error en estado estable producido por fricción y cargas mecánicas.
 
-1. **Ecuación Eléctrica:**
-   $$V(s) = (R + Ls)I(s) + K_e s\Theta(s)$$
+---
 
-2. **Ecuación Mecánica:**
-   $$K_t I(s) = (Js^2 + bs)\Theta(s) = s(Js + b)\Theta(s)$$
+## 📊 Comparativa Técnica: Posición vs. Velocidad
+
+| Parámetro / Propiedad | Guía 1: Posición Angular ($\Theta$) | Guía 2: Velocidad Angular ($\Omega$) |
+| :--- | :--- | :--- |
+| **Variable a Controlar** | Ángulo / Vueltas del eje | Revoluciones Por Minuto (RPM) |
+| **Tipo de Sistema** | **Tipo 1** (Posee un integrador puro $\frac{1}{s}$) | **Tipo 0** (Sin integradores puros) |
+| **Orden de la Planta ($L \approx 0$)** | **2.º Orden**: $G(s) = \frac{K_m}{s(\tau_m s + 1)}$ | **1.er Orden**: $G_v(s) = \frac{K_m}{\tau_m s + 1}$ |
+| **Respuesta en Lazo Abierto** | Crece indefinidamente ante un voltaje fijo | Se estabiliza en una velocidad constante |
+| **Procesamiento de Señal** | Conteo directo de pulsos del encoder | Derivación + Filtro Paso Bajo Digital (25 Hz) |
+| **Acción $K_i$ en el PID** | Opcional (el sistema elimina error por sí solo) | **Mandatoria** (necesaria para error cero) |
 
 ---
 
-## 4. Obteniendo la Función de Transferencia
+## 🛠️ Requisitos de Hardware y Conexiones
 
-Para encontrar $G(s) = \frac{\Theta(s)}{V(s)}$, primero despejamos la corriente $I(s)$ de la ecuación mecánica:
+* **Microcontrolador:** Arduino Uno / Nano / Mega.
+* **Actuador:** Motor de CD GA25-370 (12V DC, 100 RPM nominales con reductora).
+* **Driver de Potencia:** L298N o equivalente Puente H.
+* **Sensor:** Encoder Incremental Integrado (11 PPR base en motor, ~625 cuentas/vuelta en eje de salida).
 
-$$I(s) = \frac{s(Js + b)}{K_t}\Theta(s)$$
-
-Ahora, sustituimos este valor de $I(s)$ en la ecuación eléctrica:
-
-$$V(s) = (R + Ls)\left[ \frac{s(Js + b)}{K_t}\Theta(s) \right] + K_e s\Theta(s)$$
-
-Factorizamos $s\Theta(s)$ en el lado derecho:
-
-$$V(s) = s \left[ \frac{(R + Ls)(Js + b) + K_t K_e}{K_t} \right] \Theta(s)$$
-
-Finalmente, reordenando los términos para dejar la relación Posición/Voltaje, obtenemos la **función de transferencia general**:
-
-> $$G(s) = \frac{\Theta(s)}{V(s)} = \frac{K_t}{s \left[ (Ls + R)(Js + b) + K_t K_e \right]}$$
-
-Si desarrollamos el denominador, la ecuación queda de la siguiente forma de tercer orden:
-
-$$G(s) = \frac{K_t}{s \left[ LJs^2 + (RJ + Lb)s + (Rb + K_t K_e) \right]}$$
+### Diagrama de Pines General (Arduino)
+* `Pin 2 (INT0)` $\rightarrow$ Canal A del Encoder (Interrupción).
+* `Pin 3 (INT1)` $\rightarrow$ Canal B del Encoder.
+* `Pin 5 (PWM)`  $\rightarrow$ ENA / IN1 (Control de velocidad PWM).
+* `Pin 6`        $\rightarrow$ IN1 (Dirección 1).
+* `Pin 7`        $\rightarrow$ IN2 (Dirección 2).
 
 ---
-## 5. Sección de preguntas
-### Encoder & sensing
-- What is the fundamental physical principle behind a magnetic incremental encoder?
-- How does it distinguish clockwise from counterclockwise rotation?
-- Why must encoder outputs be connected to interrupt-capable pins (pins 2 and 3 on Arduino Uno), rather than any digital pin?
-- Why is the volatile keyword required for the posi variable, and what exact failure can occur without it?
-- What is the purpose of ATOMIC_BLOCK(ATOMIC_RESTORESTATE)?
-- What race condition does it prevent, and why is volatile alone insufficient?
-- The encoder has a gear reduction ratio of 1:45 and outputs 12 PPR per loop.
-- How many encoder counts correspond to one full revolution of the output shaft?
-- How does this affect position resolution?
 
-### Motor driving
-- Explain the relationship between duty cycle and average output voltage in PWM. If the supply is 12 V and the duty cycle is 60%, what is the average motor voltage?
-- Describe the H-Bridge switching logic. Which switch pairs must activate to reverse motor direction, and why does activating all four simultaneously cause a short circuit?
-- The L298N introduces approximately a 2 V drop. How does this affect the maximum achievable speed when using a 12 V supply? What are the implications for the control signal range?
-- Why is a DC motor considered an integral plant (type 1 system) in control terms? What does this imply about open-loop position stability?
+## 💻 Interfaz de Comando Serial (Tiempo Real)
 
-### Feedback loop
-- Draw and explain the block diagram of the closed-loop position control system used in this guide. Identify the plant, sensor, controller, and actuator.
-- What is the error signal e(t) in this system? What are the consequences of defining it as pos - target versus target - pos on the sign convention of the control output?
-- Why does this system use a sinusoidal reference target = 250*sin(prevT/1e6) instead of a step input for testing? What does it reveal about system performance that a step cannot?
+Ambos códigos incluyen un analizador sintáctico por puerto serial a 115200 baudios que permite modificar los parámetros del sistema durante la ejecución sin necesidad de re-compilar:
 
-### PID theory
-- State the PID control law m(t) = Kp·e(t) + Ki·∫e(t)dt + Kd·de/dt. What is the physical interpretation of each term and what aspect of system behavior does each correct?
-- The guide approximates the integral as eintegral += e * deltaT. What numerical integration method is this? What are its error characteristics compared to trapezoidal integration?
-- What is integrator windup? Under what conditions does it occur in this implementation, and what strategies could be added to prevent it?
-- The derivative term uses (e - eprev) / deltaT. Why is derivative action sensitive to noise? What is "derivative kick" and how can it be mitigated?
-- In the code, Ki is set to 0. With only proportional and derivative action (PD control), can the system achieve zero steady-state error for a constant reference? Justify your answer analytically.
-### Tuning & performance
-- Describe the manual tuning procedure starting with Kp alone. What observable behavior tells you Kp is too low, adequate, or too high?
-- Define settling time, overshoot, and steady-state error. Given that the lab grades on minimizing all three simultaneously, explain the trade-offs involved in achieving this.
-- How does increasing Kd affect overshoot and settling time? At what point does excessive Kd become detrimental to system stability?
-- What is the effect of the gear reduction on the system dynamics from the controller's perspective — specifically on gain, inertia reflected to the motor shaft, and bandwidth?
-### Implementation
-- The sample time deltaT is computed as (currT - prevT) / 1e6. Why is variable sample time used instead of a fixed timer interrupt? What problems can arise from non-uniform sampling?
-- The PWM output is clamped to [0, 255] and direction is determined by the sign of u. What is the effect of this nonlinearity (saturation) on the integral term, and how does it interact with windup?
-- If you wanted to accept a target position via serial input from the keyboard (the optional deliverable), what modifications to the code structure would be required? What parsing and safety considerations apply?
-- The Serial.println() calls inside the main loop add latency. How does this affect the effective sampling rate and control loop timing? How would you measure and mitigate this?
-
-## 6. Aproximación Práctica (Simplificación)
-
-En la gran mayoría de los motores de CD prácticos, la inductancia de la armadura ($L$) es extremadamente pequeña comparada con la resistencia ($R$) ($L \approx 0$). Si despreciamos $L$, la función de transferencia se simplifica a un sistema de **segundo orden**:
-
-$$G(s) = \frac{K_t}{s \left[ R(Js + b) + K_t K_e \right]} = \frac{K_t}{s \left[ RJs + (Rb + K_t K_e) \right]}$$
-
-Dividiendo todo entre $(Rb + K_t K_e)$ para llevarlo a la forma estándar:
-
-$$G(s) = \frac{K_m}{s(\tau_m s + 1)}$$
-
-Donde:
-* **$K_m = \frac{K_t}{Rb + K_t K_e}$** es la ganancia del motor.
-* **$\tau_m = \frac{RJ}{Rb + K_t K_e}$** es la constante de tiempo mecánica del motor.
-
-> **Nota:** La presencia de la $s$ solitaria en el denominador ($s \cdot [...]$) actúa como un **integrador puro**. Esto significa que si aplicas un voltaje constante, el motor girará a una *velocidad* constante, lo que hace que la *posición* $(\theta)$ crezca linealmente de forma indefinita.
+* `vt=<valor>` : Asigna la velocidad o posición objetivo (Ej: `vt=120`).
+* `kp=<valor>` : Ajusta la ganancia proporcional (Ej: `kp=3.5`).
+* `ki=<valor>` : Ajusta la ganancia integral (Ej: `ki=12.0`).
+* `kd=<valor>` : Ajusta la ganancia derivativa (Ej: `kd=0.05`).
+* `stop`       : Detiene de inmediato el motor por seguridad.
