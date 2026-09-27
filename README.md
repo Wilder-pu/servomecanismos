@@ -13,6 +13,7 @@ Diseñar, analizar e implementar controladores digitales de **posición angular 
 ## 📚 Estructura de las Guías
 
 ```mermaid
+
 flowchart TD
     subgraph HW["SISTEMA ELECTROMECÁNICO"]
         direction LR
@@ -32,6 +33,7 @@ flowchart TD
         direction TB
         G2_D["• Variable: Velocidad Ω(t)<br>• Sistema: Tipo 0 (Sin integrador)<br>• Modelo: 1.er Orden (L ≈ 0)<br>• Proceso: Filtrado PB (25 Hz)<br>• Control: PI / PID"]
     end
+    
 ---
 
 ### 📌 Guía 1: Control de Posición Angular ($\Theta$)
