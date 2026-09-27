@@ -13,27 +13,56 @@ Diseñar, analizar e implementar controladores digitales de **posición angular 
 ## 📚 Estructura de las Guías
 
 ```mermaid
+flowchart TB
 
-flowchart TD
-    subgraph HW["SISTEMA ELECTROMECÁNICO"]
+    subgraph SEM["SISTEMA ELECTROMECÁNICO"]
         direction LR
-        ARD["[Arduino]"] --> DRV["[Driver L298N]"] --> MOT["[Motor DC GA25-370]"]
-        MOT -.->|Feedback| ENC["[Encoder]"] -.-> ARD
+
+        ARD["Arduino"]
+        DRV["Driver L298N"]
+        MOT["Motor DC GA25-370"]
+        ENC["Encoder"]
+
+        ARD --> DRV
+        DRV --> MOT
+        MOT --> ENC
+        ENC --> ARD
     end
 
-    HW --> G1
-    HW --> G2
+    SEM --> G1
+    SEM --> G2
 
-    subgraph G1["<b>GUÍA 1</b><br>Control de Posición Angular"]
+    subgraph G1["GUÍA 1 — Control de Posición Angular"]
         direction TB
-        G1_D["• Variable: Posición θ(t)<br>• Sistema: Tipo 1 (Integrador)<br>• Modelo: 2.º Orden (L ≈ 0)<br>• Entrada: Perfil Sinusoidal<br>• Control: PD / PID"]
+
+        G1V["Variable: Posición θ(t)"]
+        G1S["Sistema: Tipo 1 (Integrador)"]
+        G1M["Modelo: 2.º Orden (≈ 0 s)"]
+        G1E["Entrada: Perfil Sinusoidal"]
+        G1C["Control: PD / PID"]
+
+        G1V --> G1S
+        G1S --> G1M
+        G1M --> G1E
+        G1E --> G1C
     end
 
-    subgraph G2["<b>GUÍA 2</b><br>Control de Velocidad Angular"]
+    subgraph G2["GUÍA 2 — Control de Velocidad Angular"]
         direction TB
-        G2_D["• Variable: Velocidad Ω(t)<br>• Sistema: Tipo 0 (Sin integrador)<br>• Modelo: 1.er Orden (L ≈ 0)<br>• Proceso: Filtrado PB (25 Hz)<br>• Control: PI / PID"]
+
+        G2V["Variable: Velocidad ω(t)"]
+        G2S["Sistema: Tipo 0 (Sin integrador)"]
+        G2M["Modelo: 1.er Orden (≈ 0 s)"]
+        G2P["Proceso: Filtro PB (25 Hz)"]
+        G2C["Control: PI / PID"]
+
+        G2V --> G2S
+        G2S --> G2M
+        G2M --> G2P
+        G2P --> G2C
     end
-    
+```
+
 ---
 
 ### 📌 Guía 1: Control de Posición Angular ($\Theta$)
