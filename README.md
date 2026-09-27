@@ -121,7 +121,10 @@ Se analiza el comportamiento dinámico de la velocidad y la necesidad de acondic
 
 Ambos códigos incluyen un analizador sintáctico por puerto serial a 115200 baudios que permite modificar los parámetros del sistema durante la ejecución sin necesidad de re-compilar:
 
-* `vt=<valor>` : Asigna la velocidad o posición objetivo (Ej: `vt=120`).
+* `pos=<valor>`: Asigna la posición objetivo (Ej: `pos=625`).
+* `vt=<valor>` : Asigna la velocidad objetivo (Ej: `vt=85`).
+* `dir=<valor>`: Asigna la direccion de giro del motor (Ej: `dir=-1`).
+* `pwm=<valor>`: Asigna el valor de pwm objetivo (Ej: `pwm=200`).
 * `kp=<valor>` : Ajusta la ganancia proporcional (Ej: `kp=3.5`).
 * `ki=<valor>` : Ajusta la ganancia integral (Ej: `ki=12.0`).
 * `kd=<valor>` : Ajusta la ganancia derivativa (Ej: `kd=0.05`).
